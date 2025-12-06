@@ -57,6 +57,11 @@ export const LoginPage: React.FC = () => {
           setStorageError(false);
         }, 5000);
       }
+
+      // Store user info including admin status
+      if (response.data.user) {
+        storage.setItem('user', JSON.stringify(response.data.user));
+      }
       
       navigate('/');
     } catch (err: any) {
@@ -78,8 +83,16 @@ export const LoginPage: React.FC = () => {
           {process.env.NODE_ENV === 'development' && (
             <div className="mt-4 p-3 bg-accent-purple/10 border border-accent-purple/30 rounded-lg text-left">
               <p className="text-xs text-text-muted mb-2 font-semibold">Development Credentials:</p>
-              <p className="text-xs text-white">Email: organizer@eventa.com</p>
-              <p className="text-xs text-white">Password: password123</p>
+              <div className="mb-2">
+                <p className="text-xs font-semibold text-accent-purple mb-1">🔑 Super Admin:</p>
+                <p className="text-xs text-white">Email: admin@eventa.com</p>
+                <p className="text-xs text-white">Password: admin123</p>
+              </div>
+              <div className="mt-2 pt-2 border-t border-accent-purple/20">
+                <p className="text-xs font-semibold text-accent-teal mb-1">Organizer:</p>
+                <p className="text-xs text-white">Email: organizer@eventa.com</p>
+                <p className="text-xs text-white">Password: password123</p>
+              </div>
             </div>
           )}
         </div>

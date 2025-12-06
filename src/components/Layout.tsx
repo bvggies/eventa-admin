@@ -16,6 +16,7 @@ export const Layout: React.FC = () => {
     { path: '/events', label: 'Events', icon: '🎉' },
     { path: '/ticket-sales', label: 'Sales', icon: '💰' },
     { path: '/analytics', label: 'Analytics', icon: '📈' },
+    { path: '/admin', label: 'Admin', icon: '👑' },
   ];
 
   return (
@@ -33,13 +34,13 @@ export const Layout: React.FC = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                    className={`inline-flex items-center px-3 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
                       location.pathname === item.path
                         ? 'border-accent-purple text-white'
-                        : 'border-transparent text-text-muted hover:text-white hover:border-gray-300'
+                        : 'border-transparent text-text-muted hover:text-white hover:border-accent-purple/50'
                     }`}
                   >
-                    <span className="mr-2">{item.icon}</span>
+                    <span className="mr-2 text-lg">{item.icon}</span>
                     {item.label}
                   </Link>
                 ))}

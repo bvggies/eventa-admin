@@ -91,6 +91,13 @@ admin-dashboard/
 ## 🔑 Login Credentials
 
 Default credentials (development only):
+
+### Super Admin Account
+- **Email**: `admin@eventa.com`
+- **Password**: `admin123`
+- **Role**: Super Admin (Full Access)
+
+### Organizer Account
 - **Email**: `organizer@eventa.com`
 - **Password**: `password123`
 

@@ -2,17 +2,25 @@
 
 ## Default Login Credentials
 
-After seeding the database, you can login with any of these organizer accounts:
+After seeding the database, you can login with any of these accounts:
 
-### Primary Admin Account
+### 🔑 Super Admin Account (Full Access)
+- **Email**: `admin@eventa.com`
+- **Password**: `admin123`
+- **Role**: Super Admin
+- **Access**: Full administrative access to all features
+
+### Primary Organizer Account
 - **Email**: `organizer@eventa.com`
 - **Password**: `password123`
 - **Role**: Organizer
 
-### Alternative Admin Account
+### Alternative Organizer Account
 - **Email**: `sarah@example.com`
 - **Password**: `password123`
 - **Role**: Organizer
+
+> **Note**: For detailed information about the super admin account, see [SUPER_ADMIN.md](./SUPER_ADMIN.md)
 
 ## Setup Instructions
 
