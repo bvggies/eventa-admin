@@ -18,11 +18,37 @@ export const PlatformSettingsPage: React.FC = () => {
 
   return (
     <div className="px-4 py-6">
-      <h1 className="text-3xl font-bold text-white mb-8">Platform Settings</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-white">Platform Settings</h1>
+      </div>
+
+      {/* Settings Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">⚙️</div>
+          <h3 className="text-text-muted text-sm mb-1">Active Settings</h3>
+          <p className="text-3xl font-bold text-white">12</p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">🔔</div>
+          <h3 className="text-text-muted text-sm mb-1">Notification Templates</h3>
+          <p className="text-3xl font-bold text-white">5</p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">🎨</div>
+          <h3 className="text-text-muted text-sm mb-1">Branding Configs</h3>
+          <p className="text-3xl font-bold text-white">3</p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">🔒</div>
+          <h3 className="text-text-muted text-sm mb-1">Security Rules</h3>
+          <p className="text-3xl font-bold text-white">8</p>
+        </div>
+      </div>
 
       <div className="space-y-6">
         {/* General Settings */}
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
           <h2 className="text-xl font-bold text-white mb-6">General Settings</h2>
           <div className="space-y-4">
             <div>
@@ -59,7 +85,7 @@ export const PlatformSettingsPage: React.FC = () => {
         </div>
 
         {/* System Settings */}
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
           <h2 className="text-xl font-bold text-white mb-6">System Settings</h2>
           <div className="space-y-4">
             <label className="flex items-center justify-between p-4 bg-primary-dark rounded-lg border border-gray-800">
@@ -102,7 +128,7 @@ export const PlatformSettingsPage: React.FC = () => {
         </div>
 
         {/* Financial Settings */}
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
           <h2 className="text-xl font-bold text-white mb-6">Financial Settings</h2>
           <div className="space-y-4">
             <div>

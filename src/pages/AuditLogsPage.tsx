@@ -63,6 +63,14 @@ export const AuditLogsPage: React.FC = () => {
     );
   }
 
+  const filteredLogs = logs.filter((log) => {
+    if (filter === 'all') return true;
+    if (filter === 'create') return log.action.includes('Created');
+    if (filter === 'update') return log.action.includes('Updated') || log.action.includes('Promoted');
+    if (filter === 'delete') return log.action.includes('Deleted');
+    return true;
+  });
+
   return (
     <div className="px-4 py-6">
       <div className="flex justify-between items-center mb-8">
@@ -79,7 +87,38 @@ export const AuditLogsPage: React.FC = () => {
         </select>
       </div>
 
-      <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+      {/* Audit Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">📊</div>
+          <h3 className="text-text-muted text-sm mb-1">Total Logs</h3>
+          <p className="text-3xl font-bold text-white">{logs.length}</p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">➕</div>
+          <h3 className="text-text-muted text-sm mb-1">Created</h3>
+          <p className="text-3xl font-bold text-green-400">
+            {logs.filter((l) => l.action.includes('Created')).length}
+          </p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">✏️</div>
+          <h3 className="text-text-muted text-sm mb-1">Updated</h3>
+          <p className="text-3xl font-bold text-blue-400">
+            {logs.filter((l) => l.action.includes('Updated') || l.action.includes('Promoted')).length}
+          </p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">🗑️</div>
+          <h3 className="text-text-muted text-sm mb-1">Deleted</h3>
+          <p className="text-3xl font-bold text-red-400">
+            {logs.filter((l) => l.action.includes('Deleted')).length}
+          </p>
+        </div>
+      </div>
+
+      {/* Audit Logs Table */}
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -92,14 +131,14 @@ export const AuditLogsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {logs.length === 0 ? (
+              {filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-text-muted">
                     No audit logs found
                   </td>
                 </tr>
               ) : (
-                logs.map((log) => (
+                filteredLogs.map((log) => (
                   <tr
                     key={log.id}
                     className="border-b border-gray-800 hover:bg-primary-dark transition-colors"

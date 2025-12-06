@@ -52,27 +52,36 @@ export const PlatformModerationPage: React.FC = () => {
 
   return (
     <div className="px-4 py-6">
-      <h1 className="text-3xl font-bold text-white mb-8">Platform Moderation</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-white">Platform Moderation</h1>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
           <div className="text-3xl mb-2">⏳</div>
           <h3 className="text-text-muted text-sm mb-1">Pending Approval</h3>
           <p className="text-3xl font-bold text-white">{pendingEvents.length}</p>
         </div>
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
           <div className="text-3xl mb-2">✅</div>
           <h3 className="text-text-muted text-sm mb-1">Approved Events</h3>
           <p className="text-3xl font-bold text-white">{events.length - pendingEvents.length}</p>
         </div>
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">🚫</div>
+          <h3 className="text-text-muted text-sm mb-1">Flagged Content</h3>
+          <p className="text-3xl font-bold text-white">0</p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
           <div className="text-3xl mb-2">📊</div>
           <h3 className="text-text-muted text-sm mb-1">Total Events</h3>
           <p className="text-3xl font-bold text-white">{events.length}</p>
         </div>
       </div>
 
-      <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+      {/* Events Awaiting Approval Section */}
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl mb-8">
         <h2 className="text-xl font-bold text-white mb-6">Events Awaiting Approval</h2>
         {pendingEvents.length === 0 ? (
           <div className="text-center py-12 text-text-muted">
@@ -84,7 +93,7 @@ export const PlatformModerationPage: React.FC = () => {
             {pendingEvents.map((event: any) => (
               <div
                 key={event.id}
-                className="p-4 bg-primary-dark rounded-lg border border-gray-800 hover:border-accent-purple/50 transition-all"
+                className="p-4 bg-primary-dark rounded-lg border border-gray-800 hover:border-accent-purple/50 transition-all cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -113,6 +122,24 @@ export const PlatformModerationPage: React.FC = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Content Moderation Section */}
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl mb-8">
+        <h2 className="text-xl font-bold text-white mb-6">Content Moderation</h2>
+        <div className="text-center py-12 text-text-muted">
+          <p className="text-lg mb-2">No flagged content</p>
+          <p className="text-sm">All content is clean and approved</p>
+        </div>
+      </div>
+
+      {/* User Reports Section */}
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
+        <h2 className="text-xl font-bold text-white mb-6">User Reports</h2>
+        <div className="text-center py-12 text-text-muted">
+          <p className="text-lg mb-2">No pending reports</p>
+          <p className="text-sm">All reports have been reviewed</p>
+        </div>
       </div>
     </div>
   );

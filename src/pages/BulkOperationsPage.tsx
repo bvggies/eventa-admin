@@ -94,9 +94,38 @@ export const BulkOperationsPage: React.FC = () => {
 
   return (
     <div className="px-4 py-6">
-      <h1 className="text-3xl font-bold text-white mb-8">Bulk Operations</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-white">Bulk Operations</h1>
+      </div>
 
-      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 mb-6">
+      {/* Bulk Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">📋</div>
+          <h3 className="text-text-muted text-sm mb-1">Total Events</h3>
+          <p className="text-3xl font-bold text-white">{events.length}</p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">✅</div>
+          <h3 className="text-text-muted text-sm mb-1">Selected</h3>
+          <p className="text-3xl font-bold text-accent-purple">{selectedEvents.size}</p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">⭐</div>
+          <h3 className="text-text-muted text-sm mb-1">Featured</h3>
+          <p className="text-3xl font-bold text-yellow-400">
+            {events.filter((e: any) => e.is_featured).length}
+          </p>
+        </div>
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">📊</div>
+          <h3 className="text-text-muted text-sm mb-1">Operations</h3>
+          <p className="text-3xl font-bold text-white">4</p>
+        </div>
+      </div>
+
+      {/* Bulk Actions Card */}
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-white font-semibold">
@@ -164,16 +193,19 @@ export const BulkOperationsPage: React.FC = () => {
         )}
       </div>
 
-      <div className="space-y-2">
-        {events.map((event: any) => (
-          <div
-            key={event.id}
-            className={`p-4 bg-primary-card rounded-lg border transition-all ${
-              selectedEvents.has(event.id)
-                ? 'border-accent-purple bg-purple-500/10'
-                : 'border-gray-800 hover:border-gray-700'
-            }`}
-          >
+      {/* Events List Card */}
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
+        <h2 className="text-xl font-bold text-white mb-6">Select Events</h2>
+        <div className="space-y-2">
+          {events.map((event: any) => (
+            <div
+              key={event.id}
+              className={`p-4 bg-primary-dark rounded-lg border transition-all cursor-pointer ${
+                selectedEvents.has(event.id)
+                  ? 'border-accent-purple bg-purple-500/10'
+                  : 'border-gray-800 hover:border-gray-700'
+              }`}
+            >
             <div className="flex items-center gap-4">
               <input
                 type="checkbox"
@@ -192,6 +224,7 @@ export const BulkOperationsPage: React.FC = () => {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </div>
   );

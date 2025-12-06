@@ -73,7 +73,8 @@ export const FinancialControlPage: React.FC = () => {
 
       {/* Revenue Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">💰</div>
           <div className="text-text-muted text-sm mb-2">Total Revenue</div>
           <div className="text-3xl font-bold text-white">
             GHS {parseFloat(financialData?.stats?.total_revenue || 0).toLocaleString('en-US', {
@@ -82,7 +83,8 @@ export const FinancialControlPage: React.FC = () => {
             })}
           </div>
         </div>
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">✅</div>
           <div className="text-text-muted text-sm mb-2">Completed Revenue</div>
           <div className="text-3xl font-bold text-green-400">
             GHS {parseFloat(financialData?.stats?.completed_revenue || 0).toLocaleString('en-US', {
@@ -91,7 +93,8 @@ export const FinancialControlPage: React.FC = () => {
             })}
           </div>
         </div>
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">⏳</div>
           <div className="text-text-muted text-sm mb-2">Pending Revenue</div>
           <div className="text-3xl font-bold text-yellow-400">
             GHS {parseFloat(financialData?.stats?.pending_revenue || 0).toLocaleString('en-US', {
@@ -100,7 +103,8 @@ export const FinancialControlPage: React.FC = () => {
             })}
           </div>
         </div>
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div className="text-3xl mb-2">💳</div>
           <div className="text-text-muted text-sm mb-2">Total Transactions</div>
           <div className="text-3xl font-bold text-white">
             {financialData?.stats?.total_transactions || 0}
@@ -109,7 +113,7 @@ export const FinancialControlPage: React.FC = () => {
       </div>
 
       {/* Revenue Over Time */}
-      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 mb-8">
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl mb-8">
         <h2 className="text-xl font-bold text-white mb-4">Revenue Over Time</h2>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={financialData?.revenueOverTime || []}>
@@ -131,7 +135,7 @@ export const FinancialControlPage: React.FC = () => {
       </div>
 
       {/* Revenue by Event */}
-      <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl mb-8">
         <h2 className="text-xl font-bold text-white mb-4">Revenue by Event</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -157,6 +161,15 @@ export const FinancialControlPage: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Payouts Section */}
+      <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
+        <h2 className="text-xl font-bold text-white mb-4">Pending Payouts</h2>
+        <div className="text-center py-12 text-text-muted">
+          <p className="text-lg mb-2">No pending payouts</p>
+          <p className="text-sm">All payouts have been processed</p>
         </div>
       </div>
     </div>
