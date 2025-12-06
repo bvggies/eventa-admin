@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { eventsApi, authApi } from '../services/api';
+import { Link } from 'react-router-dom';
+import { adminApi } from '../services/api';
 
 interface User {
   id: string;
@@ -15,21 +16,52 @@ export const AdminManagementPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [action, setAction] = useState<'promote' | 'demote' | 'suspend' | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    is_organizer: false,
+    is_admin: false,
+  });
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [searchTerm, roleFilter]);
 
   const loadUsers = async () => {
     try {
-      // This would be a new API endpoint: GET /api/admin/users
-      // For now, we'll show a placeholder
-      setUsers([]);
+      const response = await adminApi.getUsers({
+        search: searchTerm,
+        role: roleFilter,
+      });
+      setUsers(response.data.users || []);
     } catch (error) {
       console.error('Error loading users:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    try {
+      await adminApi.createUser(newUser);
+      setShowCreateModal(false);
+      setNewUser({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        is_organizer: false,
+        is_admin: false,
+      });
+      loadUsers();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Error creating user');
     }
   };
 
@@ -43,14 +75,22 @@ export const AdminManagementPage: React.FC = () => {
     if (!selectedUser || !action) return;
 
     try {
-      // API call would go here
-      // await adminApi.updateUserRole(selectedUser.id, action);
+      if (action === 'promote') {
+        await adminApi.updateUser(selectedUser.id, { is_admin: true, is_organizer: true });
+      } else if (action === 'demote') {
+        await adminApi.updateUser(selectedUser.id, { is_admin: false });
+      } else if (action === 'suspend') {
+        // For suspend, we could add a suspended field or just delete
+        // For now, we'll just delete
+        await adminApi.deleteUser(selectedUser.id);
+      }
       setShowModal(false);
       setSelectedUser(null);
       setAction(null);
       loadUsers();
     } catch (error) {
       console.error('Error performing action:', error);
+      alert('Error performing action. Please try again.');
     }
   };
 
@@ -66,6 +106,33 @@ export const AdminManagementPage: React.FC = () => {
     <div className="px-4 py-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-white">Super Admin Management</h1>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="px-6 py-3 bg-accent-purple text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+        >
+          + Add User
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6 flex gap-4">
+        <input
+          type="text"
+          placeholder="Search users..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 px-4 py-2 bg-primary-dark border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-purple"
+        />
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="px-4 py-2 bg-primary-dark border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-purple"
+        >
+          <option value="">All Roles</option>
+          <option value="admin">Admins</option>
+          <option value="organizer">Organizers</option>
+          <option value="user">Users</option>
+        </select>
       </div>
 
       {/* Admin Stats */}
@@ -215,47 +282,164 @@ export const AdminManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Feature Placeholders */}
+      {/* Create User Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-primary-card rounded-xl p-6 border border-gray-800 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-white mb-4">Create New User</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">Name</label>
+                <input
+                  type="text"
+                  value={newUser.name}
+                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                  className="w-full px-4 py-2 bg-primary-dark border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-purple"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">Email</label>
+                <input
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  className="w-full px-4 py-2 bg-primary-dark border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-purple"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">Password</label>
+                <input
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="w-full px-4 py-2 bg-primary-dark border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-purple"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">Phone</label>
+                <input
+                  type="tel"
+                  value={newUser.phone}
+                  onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                  className="w-full px-4 py-2 bg-primary-dark border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-purple"
+                />
+              </div>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={newUser.is_organizer}
+                    onChange={(e) => setNewUser({ ...newUser, is_organizer: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-white text-sm">Organizer</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={newUser.is_admin}
+                    onChange={(e) => setNewUser({ ...newUser, is_admin: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-white text-sm">Admin</span>
+                </label>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={handleCreateUser}
+                  className="flex-1 px-4 py-2 bg-accent-purple text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Create User
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setNewUser({
+                      name: '',
+                      email: '',
+                      password: '',
+                      phone: '',
+                      is_organizer: false,
+                      is_admin: false,
+                    });
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Links */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <Link
+          to="/moderation"
+          className="bg-primary-card rounded-xl p-6 border border-gray-800 hover:border-accent-purple transition-all duration-200 hover:scale-105 cursor-pointer block"
+        >
           <h3 className="text-lg font-bold text-white mb-4">🔒 Platform Moderation</h3>
           <p className="text-text-muted text-sm mb-4">
             Moderate content, manage reports, and handle user violations.
           </p>
-          <button className="px-4 py-2 bg-accent-purple text-white rounded-lg hover:bg-purple-700 transition-colors">
-            Coming Soon
-          </button>
-        </div>
+          <span className="text-accent-purple text-sm font-medium">View Page →</span>
+        </Link>
 
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <Link
+          to="/financial"
+          className="bg-primary-card rounded-xl p-6 border border-gray-800 hover:border-accent-purple transition-all duration-200 hover:scale-105 cursor-pointer block"
+        >
           <h3 className="text-lg font-bold text-white mb-4">💰 Financial Control</h3>
           <p className="text-text-muted text-sm mb-4">
             Manage revenue, payouts, and commission settings.
           </p>
-          <button className="px-4 py-2 bg-accent-purple text-white rounded-lg hover:bg-purple-700 transition-colors">
-            Coming Soon
-          </button>
-        </div>
+          <span className="text-accent-purple text-sm font-medium">View Page →</span>
+        </Link>
 
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <Link
+          to="/settings"
+          className="bg-primary-card rounded-xl p-6 border border-gray-800 hover:border-accent-purple transition-all duration-200 hover:scale-105 cursor-pointer block"
+        >
           <h3 className="text-lg font-bold text-white mb-4">⚙️ Platform Settings</h3>
           <p className="text-text-muted text-sm mb-4">
             Configure branding, notifications, and system settings.
           </p>
-          <button className="px-4 py-2 bg-accent-purple text-white rounded-lg hover:bg-purple-700 transition-colors">
-            Coming Soon
-          </button>
-        </div>
+          <span className="text-accent-purple text-sm font-medium">View Page →</span>
+        </Link>
 
-        <div className="bg-primary-card rounded-xl p-6 border border-gray-800">
+        <Link
+          to="/audit-logs"
+          className="bg-primary-card rounded-xl p-6 border border-gray-800 hover:border-accent-purple transition-all duration-200 hover:scale-105 cursor-pointer block"
+        >
           <h3 className="text-lg font-bold text-white mb-4">📊 Audit Logs</h3>
           <p className="text-text-muted text-sm mb-4">
             View admin actions, security events, and system logs.
           </p>
-          <button className="px-4 py-2 bg-accent-purple text-white rounded-lg hover:bg-purple-700 transition-colors">
-            Coming Soon
-          </button>
-        </div>
+          <span className="text-accent-purple text-sm font-medium">View Page →</span>
+        </Link>
+
+        <Link
+          to="/bulk-operations"
+          className="bg-primary-card rounded-xl p-6 border border-gray-800 hover:border-accent-purple transition-all duration-200 hover:scale-105 cursor-pointer block"
+        >
+          <h3 className="text-lg font-bold text-white mb-4">⚡ Bulk Operations</h3>
+          <p className="text-text-muted text-sm mb-4">
+            Perform bulk actions on multiple events at once.
+          </p>
+          <span className="text-accent-purple text-sm font-medium">View Page →</span>
+        </Link>
+
+        <Link
+          to="/system-health"
+          className="bg-primary-card rounded-xl p-6 border border-gray-800 hover:border-accent-purple transition-all duration-200 hover:scale-105 cursor-pointer block"
+        >
+          <h3 className="text-lg font-bold text-white mb-4">💚 System Health</h3>
+          <p className="text-text-muted text-sm mb-4">
+            Monitor system status, database, and API health.
+          </p>
+          <span className="text-accent-purple text-sm font-medium">View Page →</span>
+        </Link>
       </div>
     </div>
   );

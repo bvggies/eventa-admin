@@ -39,5 +39,19 @@ export const eventsApi = {
   delete: (id: string) => api.delete(`/events/${id}`),
 };
 
+export const adminApi = {
+  // User management
+  getUsers: (params?: any) => api.get('/admin/users', { params }),
+  createUser: (data: any) => api.post('/admin/users', data),
+  updateUser: (id: string, data: any) => api.put(`/admin/users/${id}`, data),
+  deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
+  
+  // Analytics
+  getAnalytics: (params?: any) => api.get('/admin/analytics', { params }),
+  getNotifications: () => api.get('/admin/notifications'),
+  getActivity: () => api.get('/admin/activity'),
+  getFinancialData: (params?: any) => api.get('/admin/financial', { params }),
+};
+
 export default api;
 

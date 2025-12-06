@@ -9,6 +9,13 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AttendeesPage } from './pages/AttendeesPage';
 import { TicketSalesPage } from './pages/TicketSalesPage';
 import { AdminManagementPage } from './pages/AdminManagementPage';
+import { AdminProfilePage } from './pages/AdminProfilePage';
+import { PlatformModerationPage } from './pages/PlatformModerationPage';
+import { FinancialControlPage } from './pages/FinancialControlPage';
+import { PlatformSettingsPage } from './pages/PlatformSettingsPage';
+import { AuditLogsPage } from './pages/AuditLogsPage';
+import { BulkOperationsPage } from './pages/BulkOperationsPage';
+import { SystemHealthPage } from './pages/SystemHealthPage';
 import { Layout } from './components/Layout';
 import { storage } from './utils/storage';
 
@@ -80,10 +87,20 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    // Update document title
+    document.title = 'Eventa Admin Dashboard';
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-primary-dark flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent-purple to-accent-teal flex items-center justify-center shadow-lg shadow-purple-500/30 animate-pulse">
+            <span className="text-3xl font-bold text-white">E</span>
+          </div>
+          <div className="text-white">Loading...</div>
+        </div>
       </div>
     );
   }
@@ -102,6 +119,13 @@ function App() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="ticket-sales" element={<TicketSalesPage />} />
             <Route path="admin" element={<AdminManagementPage />} />
+            <Route path="profile" element={<AdminProfilePage />} />
+            <Route path="moderation" element={<PlatformModerationPage />} />
+            <Route path="financial" element={<FinancialControlPage />} />
+            <Route path="settings" element={<PlatformSettingsPage />} />
+            <Route path="audit-logs" element={<AuditLogsPage />} />
+            <Route path="bulk-operations" element={<BulkOperationsPage />} />
+            <Route path="system-health" element={<SystemHealthPage />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" replace />} />

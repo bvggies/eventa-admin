@@ -16,7 +16,7 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { eventsApi } from '../services/api';
+import { eventsApi, adminApi } from '../services/api';
 
 const COLORS = ['#7C3AED', '#06B6D4', '#F59E0B', '#10B981', '#EF4444'];
 
@@ -33,8 +33,12 @@ export const AnalyticsPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const response = await eventsApi.getAll();
-      setEvents(response.data);
+      const [eventsResponse, analyticsResponse] = await Promise.all([
+        eventsApi.getAll(),
+        adminApi.getAnalytics(),
+      ]);
+      setEvents(eventsResponse.data);
+      // Analytics data is now available from adminApi
     } catch (error) {
       console.error('Error loading analytics:', error);
     } finally {

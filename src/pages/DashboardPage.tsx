@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { eventsApi } from '../services/api';
+import { eventsApi, adminApi } from '../services/api';
 
 type TimeRange = 'today' | '7days' | '30days' | 'alltime';
 
@@ -49,112 +49,97 @@ export const DashboardPage: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const response = await eventsApi.getAll();
-      const events = response.data;
-      
-      // Calculate revenue (assuming average ticket price)
-      const totalRevenue = events.reduce((sum: number, e: any) => {
-        const ticketPrice = e.ticket_price || 0;
-        const ticketsSold = Math.floor((e.rsvps || 0) * 0.5); // Estimate 50% conversion
-        return sum + (ticketPrice * ticketsSold);
-      }, 0);
+      const [analyticsResponse, eventsResponse] = await Promise.all([
+        adminApi.getAnalytics({ timeRange }),
+        eventsApi.getAll(),
+      ]);
+
+      const analytics = analyticsResponse.data;
+      const events = eventsResponse.data;
 
       setStats({
-        totalEvents: events.length,
+        totalEvents: analytics.stats.totalEvents,
         totalViews: events.reduce((sum: number, e: any) => sum + (e.views || 0), 0),
         totalRSVPs: events.reduce((sum: number, e: any) => sum + (e.rsvps || 0), 0),
-        totalTickets: events.reduce((sum: number, e: any) => Math.floor((e.rsvps || 0) * 0.5), 0),
-        ticketsCapacity: events.reduce((sum: number, e: any) => sum + 100, 0), // Estimate capacity
-        totalRevenue,
+        totalTickets: analytics.stats.totalTickets,
+        ticketsCapacity: analytics.stats.totalTickets * 2, // Estimate capacity
+        totalRevenue: analytics.stats.totalRevenue,
+      });
+
+      // Set conversion data
+      const totalViews = events.reduce((sum: number, e: any) => sum + (e.views || 0), 0);
+      const totalRSVPs = events.reduce((sum: number, e: any) => sum + (e.rsvps || 0), 0);
+      setConversionData({
+        views: totalViews,
+        rsvps: totalRSVPs,
+        tickets: analytics.stats.totalTickets,
       });
     } catch (error) {
       console.error('Error loading stats:', error);
+      // Fallback to events API only
+      try {
+        const response = await eventsApi.getAll();
+        const events = response.data;
+        setStats({
+          totalEvents: events.length,
+          totalViews: events.reduce((sum: number, e: any) => sum + (e.views || 0), 0),
+          totalRSVPs: events.reduce((sum: number, e: any) => sum + (e.rsvps || 0), 0),
+          totalTickets: 0,
+          ticketsCapacity: 100,
+          totalRevenue: 0,
+        });
+      } catch (fallbackError) {
+        console.error('Error loading fallback stats:', fallbackError);
+      }
     }
   };
 
-  const loadNotifications = () => {
-    // Mock notifications - replace with API call
-    setNotifications([
-      {
-        id: '1',
-        type: 'info',
-        message: '3 events awaiting approval',
-        icon: '🔔',
-      },
-      {
-        id: '2',
-        type: 'warning',
-        message: 'Low sales on "Afro Night Party"',
-        icon: '⚠️',
-      },
-      {
-        id: '3',
-        type: 'success',
-        message: '120 RSVPs today',
-        icon: '🔥',
-      },
-    ]);
+  const loadNotifications = async () => {
+    try {
+      const response = await adminApi.getNotifications();
+      setNotifications(response.data.notifications || []);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+      setNotifications([]);
+    }
   };
 
-  const loadRecentActivity = () => {
-    // Mock activity - replace with API call
-    setRecentActivity([
-      {
-        id: '1',
-        type: 'ticket',
-        message: 'Ama bought VIP ticket for AfroJam',
-        time: '5m ago',
-        icon: '💳',
-      },
-      {
-        id: '2',
-        type: 'rsvp',
-        message: 'Kofi RSVPed to TechConf2025',
-        time: '12m ago',
-        icon: '✋',
-      },
-      {
-        id: '3',
-        type: 'event',
-        message: 'Beach Party event updated',
-        time: '1h ago',
-        icon: '📅',
-      },
-      {
-        id: '4',
-        type: 'comment',
-        message: 'New comment on "Osu Night Vibes"',
-        time: '2h ago',
-        icon: '💬',
-      },
-    ]);
+  const loadRecentActivity = async () => {
+    try {
+      const response = await adminApi.getActivity();
+      setRecentActivity(response.data.activities || []);
+    } catch (error) {
+      console.error('Error loading activity:', error);
+      setRecentActivity([]);
+    }
   };
 
   const loadQuickAnalytics = async () => {
     try {
-      const response = await eventsApi.getAll();
-      const events = response.data;
+      const response = await adminApi.getAnalytics({ timeRange });
+      const analytics = response.data;
       
       // Top event of the week
-      const topEventData = events
-        .sort((a: any, b: any) => (b.views || 0) - (a.views || 0))[0];
-      setTopEvent(topEventData);
-
-      // Conversion funnel
-      const totalViews = events.reduce((sum: number, e: any) => sum + (e.views || 0), 0);
-      const totalRSVPs = events.reduce((sum: number, e: any) => sum + (e.rsvps || 0), 0);
-      const totalTickets = events.reduce((sum: number, e: any) => Math.floor((e.rsvps || 0) * 0.5), 0);
-      
-      setConversionData({
-        views: totalViews,
-        rsvps: totalRSVPs,
-        tickets: totalTickets,
-      });
+      if (analytics.trendingEvents && analytics.trendingEvents.length > 0) {
+        setTopEvent(analytics.trendingEvents[0]);
+      }
 
       // Trending tags (mock - would come from buzz API)
       setTrendingTags(['#GhanaEvents', '#LabadiParty', '#AccraNight', '#Afrobeats']);
     } catch (error) {
       console.error('Error loading quick analytics:', error);
+      // Fallback
+      try {
+        const eventsResponse = await eventsApi.getAll();
+        const events = eventsResponse.data;
+        if (events.length > 0) {
+          const topEventData = events
+            .sort((a: any, b: any) => (b.views || 0) - (a.views || 0))[0];
+          setTopEvent(topEventData);
+        }
+      } catch (fallbackError) {
+        console.error('Error loading fallback analytics:', fallbackError);
+      }
     }
   };
 
