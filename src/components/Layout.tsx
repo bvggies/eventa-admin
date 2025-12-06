@@ -1,12 +1,13 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { storage } from '../utils/storage';
 
 export const Layout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    storage.removeItem('token');
     navigate('/login');
   };
 

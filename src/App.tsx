@@ -9,9 +9,11 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AttendeesPage } from './pages/AttendeesPage';
 import { TicketSalesPage } from './pages/TicketSalesPage';
 import { Layout } from './components/Layout';
+import { storage } from './utils/storage';
 
 function App() {
-  const isAuthenticated = localStorage.getItem('token'); // In production, use proper auth state management
+  // Safely check for authentication token
+  const isAuthenticated = storage.getItem('token') !== null;
 
   return (
     <Router>
