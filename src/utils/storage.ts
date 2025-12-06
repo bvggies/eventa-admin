@@ -35,7 +35,12 @@ const isStorageBlocked = (): boolean => {
     if (e instanceof DOMException) {
       return e.code === 18 || e.name === 'SecurityError' || e.message?.includes('not allowed');
     }
-    return e.message?.includes('not allowed') || e.message?.includes('blocked') || false;
+    // Handle unknown error type
+    if (e && typeof e === 'object' && 'message' in e) {
+      const errorMessage = String((e as { message?: string }).message || '');
+      return errorMessage.includes('not allowed') || errorMessage.includes('blocked');
+    }
+    return false;
   }
 };
 
