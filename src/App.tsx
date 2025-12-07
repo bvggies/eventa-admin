@@ -187,7 +187,8 @@ function App() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="ticket-sales" element={<TicketSalesPage />} />
             <Route path="profile" element={<AdminProfilePage />} />
-            <Route path="safety-alerts" element={<SafetyAlertsPage />} />
+            {/* Safety alerts only for super admins */}
+            <Route path="safety-alerts" element={isAdmin ? <SafetyAlertsPage /> : <Navigate to={isOrganizer ? "/organizer" : "/"} replace />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" replace />} />

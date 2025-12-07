@@ -16,7 +16,7 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { eventsApi, adminApi } from '../services/api';
+import { eventsApi, adminApi, authApi } from '../services/api';
 
 const COLORS = ['#7C3AED', '#06B6D4', '#F59E0B', '#10B981', '#EF4444'];
 
@@ -24,8 +24,17 @@ type TabType = 'overview' | 'events' | 'hashtags' | 'posts' | 'users';
 
 export const AnalyticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  
+  // Reset to overview if organizer tries to access admin-only tabs
+  useEffect(() => {
+    if (!isAdmin && (activeTab === 'hashtags' || activeTab === 'posts' || activeTab === 'users')) {
+      setActiveTab('overview');
+    }
+  }, [isAdmin, activeTab]);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -33,12 +42,33 @@ export const AnalyticsPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [eventsResponse, analyticsResponse] = await Promise.all([
-        eventsApi.getAll(),
-        adminApi.getAnalytics(),
-      ]);
-      setEvents(eventsResponse.data);
-      // Analytics data is now available from adminApi
+      // Get current user to check role and filter events
+      const userResponse = await authApi.getCurrentUser();
+      const currentUser = userResponse.data;
+      setIsAdmin(currentUser.is_admin || false);
+      setUserId(currentUser.id);
+
+      // Load events
+      const eventsResponse = await eventsApi.getAll();
+      let allEvents = eventsResponse.data;
+      
+      // If user is organizer (not admin), filter to show only their events
+      if (!currentUser.is_admin && currentUser.is_organizer) {
+        allEvents = allEvents.filter((e: any) => 
+          e.organizer_id === currentUser.id || e.organizerId === currentUser.id
+        );
+      }
+      
+      setEvents(allEvents);
+      
+      // Only load admin analytics if user is admin
+      if (currentUser.is_admin) {
+        try {
+          await adminApi.getAnalytics();
+        } catch (error) {
+          // Silently fail if admin API is not available
+        }
+      }
     } catch (error) {
       console.error('Error loading analytics:', error);
     } finally {
@@ -48,7 +78,7 @@ export const AnalyticsPage: React.FC = () => {
 
   // KPI Calculations
   const totalEvents = events.length;
-  const verifiedOrganizers = new Set(events.map((e: any) => e.organizer_id)).size;
+  const verifiedOrganizers = isAdmin ? new Set(events.map((e: any) => e.organizer_id)).size : 0;
   const totalRevenue = events.reduce((sum: number, e: any) => {
     const ticketPrice = e.ticket_price || 0;
     const ticketsSold = Math.floor((e.rsvps || 0) * 0.5);
@@ -56,9 +86,9 @@ export const AnalyticsPage: React.FC = () => {
   }, 0);
   const totalTickets = events.reduce((sum: number, e: any) => Math.floor((e.rsvps || 0) * 0.5), 0);
   const totalRSVPs = events.reduce((sum: number, e: any) => sum + (e.rsvps || 0), 0);
-  const dailyActiveUsers = Math.floor(totalRSVPs * 0.3); // Estimate
-  const mostActiveCity = 'Accra'; // Would come from location data
-  const notificationsSent = totalRSVPs * 2; // Estimate
+  const dailyActiveUsers = isAdmin ? Math.floor(totalRSVPs * 0.3) : 0; // Estimate - admin only
+  const mostActiveCity = isAdmin ? 'Accra' : ''; // Would come from location data - admin only
+  const notificationsSent = isAdmin ? totalRSVPs * 2 : 0; // Estimate - admin only
 
   // Trending Events
   const trendingEvents = events
@@ -115,8 +145,8 @@ export const AnalyticsPage: React.FC = () => {
     value,
   }));
 
-  // KPI Cards
-  const kpiCards = [
+  // KPI Cards - Different for admin vs organizer
+  const kpiCards = isAdmin ? [
     { label: '🔥 Total Events', value: totalEvents, icon: '🎉', color: 'purple' },
     { label: '🪪 Verified Organizers', value: verifiedOrganizers, icon: '✅', color: 'teal' },
     { label: '💳 Total Revenue', value: `GHS ${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: '💰', color: 'green' },
@@ -125,14 +155,26 @@ export const AnalyticsPage: React.FC = () => {
     { label: '📈 Daily Active Users', value: dailyActiveUsers, icon: '👤', color: 'teal' },
     { label: '📍 Most Active City', value: mostActiveCity, icon: '🏙️', color: 'blue' },
     { label: '🔔 Notifications Sent', value: notificationsSent, icon: '📱', color: 'pink' },
+  ] : [
+    // Organizer-only KPIs
+    { label: '📅 My Events', value: totalEvents, icon: '🎉', color: 'purple' },
+    { label: '💳 Total Revenue', value: `GHS ${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: '💰', color: 'green' },
+    { label: '🎟 Tickets Sold', value: totalTickets, icon: '🎫', color: 'yellow' },
+    { label: '👥 RSVPs', value: totalRSVPs, icon: '✋', color: 'purple' },
+    { label: '👁️ Total Views', value: events.reduce((sum: number, e: any) => sum + (e.views || 0), 0), icon: '👀', color: 'teal' },
   ];
 
-  const tabs = [
+  // Tabs - Different for admin vs organizer
+  const tabs = isAdmin ? [
     { id: 'overview' as TabType, label: '📈 Overview', icon: '📊' },
     { id: 'events' as TabType, label: '📅 Events', icon: '🎉' },
     { id: 'hashtags' as TabType, label: '🔥 Hashtags', icon: '#' },
     { id: 'posts' as TabType, label: '💬 Posts', icon: '📝' },
     { id: 'users' as TabType, label: '👥 Users', icon: '👤' },
+  ] : [
+    // Organizer-only tabs
+    { id: 'overview' as TabType, label: '📈 Overview', icon: '📊' },
+    { id: 'events' as TabType, label: '📅 My Events', icon: '🎉' },
   ];
 
   if (loading) {
@@ -145,7 +187,12 @@ export const AnalyticsPage: React.FC = () => {
 
   return (
     <div className="px-4 py-6">
-      <h1 className="text-3xl font-bold text-white mb-8">Analytics Dashboard</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
+        {!isAdmin && (
+          <p className="text-text-muted">Your events analytics</p>
+        )}
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -331,8 +378,8 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Hashtags Tab */}
-      {activeTab === 'hashtags' && (
+      {/* Hashtags Tab - Admin Only */}
+      {isAdmin && activeTab === 'hashtags' && (
         <div className="space-y-6">
           <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
             <h2 className="text-xl font-bold text-white mb-4">🔥 Hashtag Analytics</h2>
@@ -365,8 +412,8 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Posts Tab */}
-      {activeTab === 'posts' && (
+      {/* Posts Tab - Admin Only */}
+      {isAdmin && activeTab === 'posts' && (
         <div className="space-y-6">
           <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
             <h2 className="text-xl font-bold text-white mb-4">💬 Buzz/Social Posts Analytics</h2>
@@ -378,8 +425,8 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Users Tab */}
-      {activeTab === 'users' && (
+      {/* Users Tab - Admin Only */}
+      {isAdmin && activeTab === 'users' && (
         <div className="space-y-6">
           <div className="bg-primary-card rounded-xl p-6 border border-gray-800 transition-all duration-300 hover:shadow-xl">
             <h2 className="text-xl font-bold text-white mb-4">👥 User Analytics</h2>

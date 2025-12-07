@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { eventsApi } from '../services/api';
+import { eventsApi, authApi } from '../services/api';
 
 export const EventsPage: React.FC = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadEvents();
+    loadUserAndEvents();
   }, []);
 
-  const loadEvents = async () => {
+  const loadUserAndEvents = async () => {
     try {
+      // Get current user to check role and filter events
+      const userResponse = await authApi.getCurrentUser();
+      const currentUser = userResponse.data;
+      setIsAdmin(currentUser.is_admin || false);
+      setUserId(currentUser.id);
+
+      // Load all events
       const response = await eventsApi.getAll();
-      setEvents(response.data);
+      let allEvents = response.data;
+      
+      // If user is organizer (not admin), filter to show only their events
+      if (!currentUser.is_admin && currentUser.is_organizer) {
+        allEvents = allEvents.filter((e: any) => 
+          e.organizer_id === currentUser.id || e.organizerId === currentUser.id
+        );
+      }
+      
+      setEvents(allEvents);
     } catch (error) {
       console.error('Error loading events:', error);
     } finally {
@@ -25,7 +43,7 @@ export const EventsPage: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
         await eventsApi.delete(id);
-        loadEvents();
+        loadUserAndEvents();
       } catch (error) {
         console.error('Error deleting event:', error);
       }
@@ -39,7 +57,12 @@ export const EventsPage: React.FC = () => {
   return (
     <div className="px-4 py-6">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-white">Events</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-white">Events</h1>
+          {!isAdmin && (
+            <p className="text-text-muted mt-1">Your events only</p>
+          )}
+        </div>
         <Link
           to="/events/create"
           className="bg-gradient-to-r from-accent-purple to-accent-teal text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
