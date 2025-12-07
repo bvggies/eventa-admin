@@ -26,8 +26,24 @@ export const Layout: React.FC = () => {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-purple to-accent-teal flex items-center justify-center shadow-lg shadow-purple-500/30">
-                  <span className="text-xl font-bold text-white">E</span>
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-purple to-accent-teal flex items-center justify-center shadow-lg shadow-purple-500/30 overflow-hidden">
+                  <img 
+                    src="/logo.png" 
+                    alt="Eventa Logo" 
+                    className="w-10 h-10 object-contain"
+                    onError={(e) => {
+                      // Fallback to SVG logo if PNG fails
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/logo.svg';
+                      target.onerror = () => {
+                        // Final fallback to text
+                        target.style.display = 'none';
+                        if (target.parentElement) {
+                          target.parentElement.innerHTML = '<span class="text-xl font-bold text-white">E</span>';
+                        }
+                      };
+                    }}
+                  />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xl font-bold text-white leading-tight">Eventa</span>

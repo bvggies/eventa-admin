@@ -115,8 +115,24 @@ export const LoginPage: React.FC = () => {
           {/* Animated Logo */}
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-purple via-purple-600 to-accent-teal flex items-center justify-center shadow-2xl shadow-purple-500/50 transform transition-all duration-500 hover:scale-110 hover:rotate-3">
-                <span className="text-4xl font-bold text-white drop-shadow-lg">E</span>
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-purple via-purple-600 to-accent-teal flex items-center justify-center shadow-2xl shadow-purple-500/50 transform transition-all duration-500 hover:scale-110 hover:rotate-3 overflow-hidden">
+                <img 
+                  src="/logo.png" 
+                  alt="Eventa Logo" 
+                  className="w-16 h-16 object-contain"
+                  onError={(e) => {
+                    // Fallback to SVG logo if PNG fails
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/logo.svg';
+                    target.onerror = () => {
+                      // Final fallback to text
+                      target.style.display = 'none';
+                      if (target.parentElement) {
+                        target.parentElement.innerHTML = '<span class="text-4xl font-bold text-white drop-shadow-lg">E</span>';
+                      }
+                    };
+                  }}
+                />
               </div>
               {/* Glow effect */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent-purple to-accent-teal opacity-50 blur-xl animate-pulse"></div>
