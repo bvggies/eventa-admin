@@ -29,11 +29,14 @@ export const SystemHealthPage: React.FC = () => {
       setHealth((prev) => ({ ...prev, api: 'unhealthy', database: 'unhealthy' }));
     }
 
-    // Check storage
+    // Check storage using the storage utility
     try {
-      localStorage.setItem('health-check', 'ok');
-      localStorage.removeItem('health-check');
-      setHealth((prev) => ({ ...prev, storage: 'healthy' }));
+      const { storage } = await import('../utils/storage');
+      if (storage.isAvailable()) {
+        setHealth((prev) => ({ ...prev, storage: 'healthy' }));
+      } else {
+        setHealth((prev) => ({ ...prev, storage: 'unhealthy' }));
+      }
     } catch (error) {
       setHealth((prev) => ({ ...prev, storage: 'unhealthy' }));
     }

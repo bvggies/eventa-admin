@@ -20,7 +20,8 @@ api.interceptors.request.use((config) => {
       config.headers.Authorization = `Bearer ${token}`;
     }
   } catch (error) {
-    console.warn('Could not read token from storage:', error);
+    // Silently fail - token will be null and request will proceed without auth
+    // This is expected when storage is blocked
   }
   return config;
 });

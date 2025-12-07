@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { eventsApi, adminApi } from '../services/api';
 
 export const PlatformModerationPage: React.FC = () => {
+  const navigate = useNavigate();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
@@ -96,22 +98,34 @@ export const PlatformModerationPage: React.FC = () => {
                 className="p-4 bg-primary-dark rounded-lg border border-gray-800 hover:border-accent-purple/50 transition-all cursor-pointer"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
+                  <div 
+                    className="flex-1 cursor-pointer"
+                    onClick={() => navigate(`/events/${event.id}/edit`)}
+                  >
                     <h3 className="text-white font-semibold text-lg mb-2">{event.name}</h3>
                     <p className="text-text-muted text-sm mb-2">{event.location}</p>
                     <p className="text-text-muted text-xs">
-                      Created: {new Date(event.created_at).toLocaleDateString()}
+                      Created: {event.created_at ? new Date(event.created_at).toLocaleDateString() : 'N/A'}
+                    </p>
+                    <p className="text-text-muted text-xs mt-1">
+                      Date: {event.date ? new Date(event.date).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleApprove(event.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleApprove(event.id);
+                      }}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => handleReject(event.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReject(event.id);
+                      }}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     >
                       Reject

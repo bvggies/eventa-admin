@@ -604,7 +604,8 @@ export const DashboardPage: React.FC = () => {
               {pendingEvents.map((event: any) => (
                 <div
                   key={event.id}
-                  className="p-3 bg-primary-dark rounded-lg border border-gray-800 hover:border-accent-purple/50 transition-all"
+                  onClick={() => window.location.href = `/events/${event.id}/edit`}
+                  className="p-3 bg-primary-dark rounded-lg border border-gray-800 hover:border-accent-purple/50 transition-all cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -612,7 +613,7 @@ export const DashboardPage: React.FC = () => {
                       <p className="text-text-muted text-xs">{event.location}</p>
                     </div>
                     <span className="text-text-muted text-xs">
-                      {new Date(event.created_at).toLocaleDateString()}
+                      {event.created_at ? new Date(event.created_at).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
                 </div>

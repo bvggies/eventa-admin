@@ -19,12 +19,19 @@ export const LoginPage: React.FC = () => {
     // Check if localStorage is available on mount
     const checkStorage = () => {
       try {
-        if (storage.isBlocked()) {
-          setStorageError(true);
-        }
+        // Use a timeout to avoid blocking the UI
+        setTimeout(() => {
+          try {
+            if (storage.isBlocked()) {
+              setStorageError(true);
+            }
+          } catch (error) {
+            // Storage check failed, but we'll use memory fallback
+            // Don't log to console to avoid noise
+          }
+        }, 100);
       } catch (error) {
-        // Storage check failed, but we'll use memory fallback
-        console.warn('Storage check failed, will use fallback:', error);
+        // Ignore errors during storage check
       }
     };
     
@@ -37,15 +44,20 @@ export const LoginPage: React.FC = () => {
     setStorageError(false);
     setLoading(true);
 
-    // Check storage availability before attempting login
-    if (!storage.isAvailable()) {
+    // Check storage availability before attempting login (but don't block login)
+    try {
+      if (!storage.isAvailable()) {
+        setStorageError(true);
+        // Don't block login - just warn that storage is blocked
+        // The app will use memory fallback
+      }
+    } catch (error) {
+      // Storage check failed, but continue with login
       setStorageError(true);
-      setError('Browser storage is blocked. Please allow cookies/localStorage in your browser settings or disable privacy extensions.');
-      setLoading(false);
-      return;
     }
 
     try {
+      console.log('Attempting login to:', process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
       const response = await authApi.login(email, password);
       
       // Try to save token (will use memory fallback if localStorage is blocked)
@@ -76,11 +88,20 @@ export const LoginPage: React.FC = () => {
       }, 300);
     } catch (err: any) {
       setLoading(false);
+      console.error('Login error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      console.error('Error config:', err.config);
+      
       if (err.code === 'ERR_BLOCKED_BY_CLIENT' || err.message?.includes('storage') || err.message?.includes('not allowed')) {
         setStorageError(true);
         setError('Browser storage is blocked. The app will use temporary storage for this session only. Please allow cookies/localStorage for persistent login.');
+      } else if (err.response?.status === 401) {
+        setError(err.response?.data?.error || 'Invalid email or password. Please check your credentials and try again.');
+      } else if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
+        setError(`Cannot connect to server. Please check that the backend is running at ${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}`);
       } else {
-        setError(err.response?.data?.error || 'Login failed. Please check your credentials and try again.');
+        setError(err.response?.data?.error || err.message || 'Login failed. Please check your credentials and try again.');
       }
     }
   };

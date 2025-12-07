@@ -39,7 +39,7 @@ function App() {
             setIsAdmin(response.data.is_admin || false);
           } catch (error) {
             // If verification fails, still allow access but mark as non-admin
-            console.warn('Could not verify admin status:', error);
+            // Silently handle - don't log to console
             setIsAdmin(false);
           }
         } else {
@@ -47,7 +47,7 @@ function App() {
           setIsAdmin(false);
         }
       } catch (error) {
-        console.warn('Error checking authentication:', error);
+        // Silently handle storage access errors
         setIsAuthenticated(false);
         setIsAdmin(false);
       } finally {
@@ -69,6 +69,7 @@ function App() {
             const response = await authApi.getCurrentUser();
             setIsAdmin(response.data.is_admin || false);
           } catch (error) {
+            // Silently handle auth verification errors
             setIsAdmin(false);
           }
         } else {
@@ -76,6 +77,7 @@ function App() {
           setIsAdmin(false);
         }
       } catch (error) {
+        // Silently handle storage access errors
         setIsAuthenticated(false);
         setIsAdmin(false);
       }
