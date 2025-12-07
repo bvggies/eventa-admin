@@ -3,7 +3,12 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { storage } from '../utils/storage';
 import { safetyApi } from '../services/api';
 
-export const Layout: React.FC = () => {
+interface LayoutProps {
+  isAdmin?: boolean;
+  isOrganizer?: boolean;
+}
+
+export const Layout: React.FC<LayoutProps> = ({ isAdmin = false, isOrganizer = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [emergencyCount, setEmergencyCount] = useState(0);
@@ -28,14 +33,25 @@ export const Layout: React.FC = () => {
     navigate('/login');
   };
 
-  const navItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/events', label: 'Events', icon: '🎉' },
-    { path: '/ticket-sales', label: 'Sales', icon: '💰' },
-    { path: '/analytics', label: 'Analytics', icon: '📈' },
-    { path: '/safety-alerts', label: 'Safety', icon: '🛡️', badge: true },
-    { path: '/admin', label: 'Admin', icon: '👑' },
-  ];
+  // Navigation items based on role
+  const getNavItems = () => {
+    const baseItems = [
+      { path: isAdmin ? '/' : '/organizer', label: 'Dashboard', icon: '📊' },
+      { path: '/events', label: 'Events', icon: '🎉' },
+      { path: '/ticket-sales', label: 'Sales', icon: '💰' },
+      { path: '/analytics', label: 'Analytics', icon: '📈' },
+      { path: '/safety-alerts', label: 'Safety', icon: '🛡️', badge: true },
+    ];
+    
+    // Super admin only items
+    if (isAdmin) {
+      baseItems.push({ path: '/admin', label: 'Admin', icon: '👑' });
+    }
+    
+    return baseItems;
+  };
+  
+  const navItems = getNavItems();
 
   return (
     <div className="min-h-screen bg-primary-dark">
@@ -65,7 +81,9 @@ export const Layout: React.FC = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xl font-bold text-white leading-tight">Eventa</span>
-                  <span className="text-xs text-text-muted leading-tight">Admin Dashboard</span>
+                  <span className="text-xs text-text-muted leading-tight">
+                    {isAdmin ? 'Admin Dashboard' : isOrganizer ? 'Organizer Dashboard' : 'Dashboard'}
+                  </span>
                 </div>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -90,36 +108,36 @@ export const Layout: React.FC = () => {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              {/* Safety Alert Button */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Safety Alert Button - Always visible */}
               <Link
                 to="/safety-alerts"
-                className="relative px-4 py-2 text-sm font-medium text-white bg-red-500/20 hover:bg-red-500/30 rounded-lg border border-red-500/50 transition-all duration-200 hover:scale-105"
+                className="relative px-3 py-2 sm:px-4 text-sm font-medium text-white bg-red-500/20 hover:bg-red-500/30 rounded-lg border border-red-500/50 transition-all duration-200 hover:scale-105 flex items-center gap-1 sm:gap-2 min-w-[44px] sm:min-w-auto"
+                title="Safety Alerts"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🚨</span>
-                  <span>Safety Alerts</span>
-                  {emergencyCount > 0 && (
-                    <>
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse shadow-lg">
-                        {emergencyCount}
-                      </span>
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
-                    </>
-                  )}
-                </div>
+                <span className="text-lg sm:text-xl">🚨</span>
+                <span className="hidden sm:inline">Safety Alerts</span>
+                {emergencyCount > 0 && (
+                  <>
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full animate-pulse shadow-lg z-10">
+                      {emergencyCount}
+                    </span>
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
+                  </>
+                )}
               </Link>
               <Link
                 to="/profile"
-                className="px-4 py-2 text-sm font-medium text-white hover:text-accent-purple transition-colors"
+                className="hidden sm:block px-4 py-2 text-sm font-medium text-white hover:text-accent-purple transition-colors"
               >
                 Profile
               </Link>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-danger rounded-lg hover:bg-red-600"
+                className="px-3 sm:px-4 py-2 text-sm font-medium text-white bg-danger rounded-lg hover:bg-red-600 transition-colors"
               >
-                Logout
+                <span className="hidden sm:inline">Logout</span>
+                <span className="sm:hidden">Out</span>
               </button>
             </div>
           </div>

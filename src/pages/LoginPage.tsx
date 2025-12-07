@@ -79,13 +79,44 @@ export const LoginPage: React.FC = () => {
 
       // Store user info including admin status
       if (response.data.user) {
-        storage.setItem('user', JSON.stringify(response.data.user));
+        const user = response.data.user;
+        
+        // Check if user has required role (admin or organizer)
+        if (!user.isAdmin && !user.isOrganizer) {
+          // Regular users are not allowed to access admin/organizer dashboards
+          setError('Access denied. Only administrators and organizers can access this dashboard.');
+          setLoading(false);
+          // Clear token if it was saved
+          storage.removeItem('token');
+          storage.removeItem('user');
+          return;
+        }
+        
+        storage.setItem('user', JSON.stringify(user));
+        
+        // Redirect based on user role
+        setTimeout(() => {
+          if (user.isAdmin) {
+            // Super admin -> super admin dashboard
+            navigate('/');
+          } else if (user.isOrganizer) {
+            // Organizer -> organizer dashboard
+            navigate('/organizer');
+          } else {
+            // This should not happen due to check above, but handle it anyway
+            setError('Access denied. Invalid user role.');
+            setLoading(false);
+            storage.removeItem('token');
+            storage.removeItem('user');
+          }
+        }, 300);
+      } else {
+        // No user data in response
+        setError('Login failed. Invalid response from server.');
+        setLoading(false);
+        storage.removeItem('token');
+        storage.removeItem('user');
       }
-      
-      // Small delay for smooth transition
-      setTimeout(() => {
-        navigate('/');
-      }, 300);
     } catch (err: any) {
       setLoading(false);
       console.error('Login error:', err);

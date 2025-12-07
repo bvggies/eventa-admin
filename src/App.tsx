@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { OrganizerDashboardPage } from './pages/OrganizerDashboardPage';
 import { EventsPage } from './pages/EventsPage';
 import { CreateEventPage } from './pages/CreateEventPage';
 import { EditEventPage } from './pages/EditEventPage';
@@ -25,6 +26,7 @@ function App() {
   // Safely check for authentication token (works with localStorage or memory fallback)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOrganizer, setIsOrganizer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,25 +35,45 @@ function App() {
       try {
         const token = storage.getItem('token');
         if (token) {
-          setIsAuthenticated(true);
-          // Verify admin status
+          // Verify admin and organizer status
           try {
             const { authApi } = await import('./services/api');
             const response = await authApi.getCurrentUser();
-            setIsAdmin(response.data.is_admin || false);
+            const isAdminUser = response.data.is_admin || false;
+            const isOrganizerUser = response.data.is_organizer || false;
+            
+            // Only allow access if user is admin or organizer
+            if (isAdminUser || isOrganizerUser) {
+              setIsAuthenticated(true);
+              setIsAdmin(isAdminUser);
+              setIsOrganizer(isOrganizerUser);
+            } else {
+              // Regular user - deny access and redirect to login
+              setIsAuthenticated(false);
+              setIsAdmin(false);
+              setIsOrganizer(false);
+              storage.removeItem('token');
+              storage.removeItem('user');
+              // Redirect will happen via routing
+            }
           } catch (error) {
-            // If verification fails, still allow access but mark as non-admin
-            // Silently handle - don't log to console
+            // If verification fails, deny access
+            setIsAuthenticated(false);
             setIsAdmin(false);
+            setIsOrganizer(false);
+            storage.removeItem('token');
+            storage.removeItem('user');
           }
         } else {
           setIsAuthenticated(false);
           setIsAdmin(false);
+          setIsOrganizer(false);
         }
       } catch (error) {
         // Silently handle storage access errors
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setIsOrganizer(false);
       } finally {
         setIsLoading(false);
       }
@@ -64,24 +86,44 @@ function App() {
       try {
         const token = storage.getItem('token');
         if (token) {
-          setIsAuthenticated(true);
-          // Verify admin status
+          // Verify admin and organizer status
           try {
             const { authApi } = await import('./services/api');
             const response = await authApi.getCurrentUser();
-            setIsAdmin(response.data.is_admin || false);
+            const isAdminUser = response.data.is_admin || false;
+            const isOrganizerUser = response.data.is_organizer || false;
+            
+            // Only allow access if user is admin or organizer
+            if (isAdminUser || isOrganizerUser) {
+              setIsAuthenticated(true);
+              setIsAdmin(isAdminUser);
+              setIsOrganizer(isOrganizerUser);
+            } else {
+              // Regular user - deny access
+              setIsAuthenticated(false);
+              setIsAdmin(false);
+              setIsOrganizer(false);
+              storage.removeItem('token');
+              storage.removeItem('user');
+            }
           } catch (error) {
-            // Silently handle auth verification errors
+            // If verification fails, deny access
+            setIsAuthenticated(false);
             setIsAdmin(false);
+            setIsOrganizer(false);
+            storage.removeItem('token');
+            storage.removeItem('user');
           }
         } else {
           setIsAuthenticated(false);
           setIsAdmin(false);
+          setIsOrganizer(false);
         }
       } catch (error) {
         // Silently handle storage access errors
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setIsOrganizer(false);
       }
     };
 
@@ -113,25 +155,39 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        {isAuthenticated ? (
-          <Route path="/" element={<Layout />}>
-            <Route index element={<DashboardPage />} />
+        {isAuthenticated && (isAdmin || isOrganizer) ? (
+          <Route path="/" element={<Layout isAdmin={isAdmin} isOrganizer={isOrganizer} />}>
+            {/* Root redirect based on role */}
+            <Route index element={
+              isAdmin ? <DashboardPage /> : 
+              isOrganizer ? <Navigate to="/organizer" replace /> : 
+              <Navigate to="/login" replace />
+            } />
+            
+            {/* Organizer Dashboard - Only accessible to organizers */}
+            <Route path="organizer" element={
+              isOrganizer ? <OrganizerDashboardPage /> : <Navigate to="/login" replace />
+            } />
+            
+            {/* Super Admin Only Routes */}
+            <Route path="admin" element={isAdmin ? <AdminManagementPage /> : <Navigate to="/login" replace />} />
+            <Route path="moderation" element={isAdmin ? <PlatformModerationPage /> : <Navigate to="/login" replace />} />
+            <Route path="financial" element={isAdmin ? <FinancialControlPage /> : <Navigate to="/login" replace />} />
+            <Route path="settings" element={isAdmin ? <PlatformSettingsPage /> : <Navigate to="/login" replace />} />
+            <Route path="audit-logs" element={isAdmin ? <AuditLogsPage /> : <Navigate to="/login" replace />} />
+            <Route path="bulk-operations" element={isAdmin ? <BulkOperationsPage /> : <Navigate to="/login" replace />} />
+            <Route path="system-health" element={isAdmin ? <SystemHealthPage /> : <Navigate to="/login" replace />} />
+            <Route path="location-monitoring" element={isAdmin ? <LocationMonitoringPage /> : <Navigate to="/login" replace />} />
+            
+            {/* Shared Routes (both admin and organizer) */}
             <Route path="events" element={<EventsPage />} />
             <Route path="events/create" element={<CreateEventPage />} />
             <Route path="events/:id/edit" element={<EditEventPage />} />
             <Route path="events/:eventId/attendees" element={<AttendeesPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="ticket-sales" element={<TicketSalesPage />} />
-            <Route path="admin" element={<AdminManagementPage />} />
             <Route path="profile" element={<AdminProfilePage />} />
-            <Route path="moderation" element={<PlatformModerationPage />} />
-            <Route path="financial" element={<FinancialControlPage />} />
-            <Route path="settings" element={<PlatformSettingsPage />} />
-            <Route path="audit-logs" element={<AuditLogsPage />} />
-            <Route path="bulk-operations" element={<BulkOperationsPage />} />
-            <Route path="system-health" element={<SystemHealthPage />} />
             <Route path="safety-alerts" element={<SafetyAlertsPage />} />
-            <Route path="location-monitoring" element={<LocationMonitoringPage />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" replace />} />
