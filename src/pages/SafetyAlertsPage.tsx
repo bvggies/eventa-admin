@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { safetyApi } from '../services/api';
 
 interface SafetyAlert {
@@ -77,7 +76,7 @@ export const SafetyAlertsPage: React.FC = () => {
   };
 
   const handleAcknowledgeAll = async () => {
-    if (!confirm('Acknowledge all unacknowledged alerts?')) return;
+    if (!window.confirm('Acknowledge all unacknowledged alerts?')) return;
     try {
       const unacknowledged = alerts.filter(a => !a.acknowledgedByAdmin);
       await Promise.all(unacknowledged.map(a => safetyApi.acknowledgeAlert(a.id)));
