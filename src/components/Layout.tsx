@@ -1,10 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { storage } from '../utils/storage';
+import { safetyApi } from '../services/api';
 
 export const Layout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [emergencyCount, setEmergencyCount] = useState(0);
+
+  useEffect(() => {
+    const loadEmergencyCount = async () => {
+      try {
+        const response = await safetyApi.getUnacknowledgedEmergencies();
+        setEmergencyCount(response.data.length);
+      } catch (error) {
+        // Silently handle errors
+      }
+    };
+
+    loadEmergencyCount();
+    const interval = setInterval(loadEmergencyCount, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     storage.removeItem('token');
@@ -16,6 +33,7 @@ export const Layout: React.FC = () => {
     { path: '/events', label: 'Events', icon: '🎉' },
     { path: '/ticket-sales', label: 'Sales', icon: '💰' },
     { path: '/analytics', label: 'Analytics', icon: '📈' },
+    { path: '/safety-alerts', label: 'Safety', icon: '🛡️', badge: true },
     { path: '/admin', label: 'Admin', icon: '👑' },
   ];
 
@@ -55,14 +73,19 @@ export const Layout: React.FC = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`inline-flex items-center px-3 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
+                    className={`inline-flex items-center px-3 pt-1 border-b-2 text-sm font-medium transition-all duration-200 relative ${
                       location.pathname === item.path
                         ? 'border-accent-purple text-white'
                         : 'border-transparent text-text-muted hover:text-white hover:border-accent-purple/50'
-                    }`}
+                    } ${item.path === '/safety-alerts' && emergencyCount > 0 ? 'animate-pulse' : ''}`}
                   >
                     <span className="mr-2 text-lg">{item.icon}</span>
                     {item.label}
+                    {item.path === '/safety-alerts' && emergencyCount > 0 && (
+                      <span className="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        {emergencyCount}
+                      </span>
+                    )}
                   </Link>
                 ))}
               </div>

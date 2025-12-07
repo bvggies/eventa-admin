@@ -54,5 +54,12 @@ export const adminApi = {
   getFinancialData: (params?: any) => api.get('/admin/financial', { params }),
 };
 
+export const safetyApi = {
+  getAllAlerts: (params?: any) => api.get('/safety/admin/alerts', { params }),
+  getUnacknowledgedEmergencies: () => api.get('/safety/admin/emergencies'),
+  acknowledgeAlert: (id: string) => api.post(`/safety/admin/acknowledge/${id}`),
+  getStatistics: () => api.get('/safety/admin/statistics'),
+};
+
 export default api;
 

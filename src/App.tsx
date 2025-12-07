@@ -16,6 +16,8 @@ import { PlatformSettingsPage } from './pages/PlatformSettingsPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
 import { BulkOperationsPage } from './pages/BulkOperationsPage';
 import { SystemHealthPage } from './pages/SystemHealthPage';
+import { SafetyAlertsPage } from './pages/SafetyAlertsPage';
+import { LocationMonitoringPage } from './pages/LocationMonitoringPage';
 import { Layout } from './components/Layout';
 import { storage } from './utils/storage';
 
@@ -128,6 +130,8 @@ function App() {
             <Route path="audit-logs" element={<AuditLogsPage />} />
             <Route path="bulk-operations" element={<BulkOperationsPage />} />
             <Route path="system-health" element={<SystemHealthPage />} />
+            <Route path="safety-alerts" element={<SafetyAlertsPage />} />
+            <Route path="location-monitoring" element={<LocationMonitoringPage />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" replace />} />
