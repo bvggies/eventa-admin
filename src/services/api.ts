@@ -56,6 +56,7 @@ export const adminApi = {
 
 export const safetyApi = {
   getAllAlerts: (params?: any) => api.get('/safety/admin/alerts', { params }),
+  getLiveFeed: (params?: any) => api.get('/safety/admin/feed', { params }),
   getUnacknowledgedEmergencies: () => api.get('/safety/admin/emergencies'),
   acknowledgeAlert: (id: string) => api.post(`/safety/admin/acknowledge/${id}`),
   getStatistics: () => api.get('/safety/admin/statistics'),

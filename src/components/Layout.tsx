@@ -91,6 +91,24 @@ export const Layout: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              {/* Safety Alert Button */}
+              <Link
+                to="/safety-alerts"
+                className="relative px-4 py-2 text-sm font-medium text-white bg-red-500/20 hover:bg-red-500/30 rounded-lg border border-red-500/50 transition-all duration-200 hover:scale-105"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🚨</span>
+                  <span>Safety Alerts</span>
+                  {emergencyCount > 0 && (
+                    <>
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse shadow-lg">
+                        {emergencyCount}
+                      </span>
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
+                    </>
+                  )}
+                </div>
+              </Link>
               <Link
                 to="/profile"
                 className="px-4 py-2 text-sm font-medium text-white hover:text-accent-purple transition-colors"
