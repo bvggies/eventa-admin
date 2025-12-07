@@ -23,6 +23,10 @@ export const CreateEventPage: React.FC = () => {
     isTrending: false,
     promoCode: '',
     promoDiscount: '0',
+    organizerName: '',
+    ticketOptions: [] as Array<{ name: string; price: number }>,
+    gallery: [] as string[],
+    ticketLink: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,12 +40,53 @@ export const CreateEventPage: React.FC = () => {
         endDate: formData.endDate || undefined,
         endTime: formData.endTime || undefined,
         promoDiscount: formData.promoCode ? parseFloat(formData.promoDiscount) : undefined,
+        organizerName: formData.organizerName || undefined,
+        ticketOptions: formData.ticketOptions.length > 0 ? formData.ticketOptions : undefined,
+        gallery: formData.gallery.length > 0 ? formData.gallery : undefined,
+        ticketLink: formData.ticketLink || undefined,
       });
       navigate('/events');
     } catch (error) {
       console.error('Error creating event:', error);
       alert('Failed to create event');
     }
+  };
+
+  const addTicketOption = () => {
+    setFormData({
+      ...formData,
+      ticketOptions: [...formData.ticketOptions, { name: '', price: 0 }],
+    });
+  };
+
+  const updateTicketOption = (index: number, field: 'name' | 'price', value: string | number) => {
+    const updated = [...formData.ticketOptions];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, ticketOptions: updated });
+  };
+
+  const removeTicketOption = (index: number) => {
+    setFormData({
+      ...formData,
+      ticketOptions: formData.ticketOptions.filter((_, i) => i !== index),
+    });
+  };
+
+  const addGalleryImage = () => {
+    const url = prompt('Enter image URL:');
+    if (url) {
+      setFormData({
+        ...formData,
+        gallery: [...formData.gallery, url],
+      });
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData({
+      ...formData,
+      gallery: formData.gallery.filter((_, i) => i !== index),
+    });
   };
 
   return (
@@ -56,6 +101,17 @@ export const CreateEventPage: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-3 bg-primary-dark border border-gray-700 rounded-lg text-white"
             required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-white mb-2">Organizer Name (Optional - defaults to your name)</label>
+          <input
+            type="text"
+            value={formData.organizerName}
+            onChange={(e) => setFormData({ ...formData, organizerName: e.target.value })}
+            className="w-full px-4 py-3 bg-primary-dark border border-gray-700 rounded-lg text-white"
+            placeholder="Leave empty to use your name"
           />
         </div>
 
@@ -203,7 +259,7 @@ export const CreateEventPage: React.FC = () => {
           </label>
           {!formData.isFree && (
             <div className="flex-1">
-              <label className="block text-sm font-medium text-white mb-2">Ticket Price (GHS)</label>
+              <label className="block text-sm font-medium text-white mb-2">Default Ticket Price (GHS)</label>
               <input
                 type="number"
                 value={formData.ticketPrice}
@@ -214,6 +270,87 @@ export const CreateEventPage: React.FC = () => {
               />
             </div>
           )}
+        </div>
+
+        {!formData.isFree && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-white">Ticket Options (Different Prices)</label>
+              <button
+                type="button"
+                onClick={addTicketOption}
+                className="px-3 py-1 bg-accent-purple text-white rounded-lg text-sm hover:opacity-90"
+              >
+                + Add Option
+              </button>
+            </div>
+            {formData.ticketOptions.map((option, index) => (
+              <div key={index} className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={option.name}
+                  onChange={(e) => updateTicketOption(index, 'name', e.target.value)}
+                  placeholder="Ticket type (e.g., VIP, General)"
+                  className="flex-1 px-4 py-2 bg-primary-dark border border-gray-700 rounded-lg text-white"
+                />
+                <input
+                  type="number"
+                  value={option.price}
+                  onChange={(e) => updateTicketOption(index, 'price', parseFloat(e.target.value) || 0)}
+                  placeholder="Price"
+                  className="w-32 px-4 py-2 bg-primary-dark border border-gray-700 rounded-lg text-white"
+                  min="0"
+                  step="0.01"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeTicketOption(index)}
+                  className="px-3 py-2 bg-red-600 text-white rounded-lg hover:opacity-90"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-white mb-2">External Ticket Link (Optional)</label>
+          <input
+            type="url"
+            value={formData.ticketLink}
+            onChange={(e) => setFormData({ ...formData, ticketLink: e.target.value })}
+            className="w-full px-4 py-3 bg-primary-dark border border-gray-700 rounded-lg text-white"
+            placeholder="https://ticketmaster.com/event/..."
+          />
+          <p className="text-sm text-gray-400 mt-1">Users will be redirected here to purchase tickets</p>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-white">Gallery Photos</label>
+            <button
+              type="button"
+              onClick={addGalleryImage}
+              className="px-3 py-1 bg-accent-purple text-white rounded-lg text-sm hover:opacity-90"
+            >
+              + Add Image
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {formData.gallery.map((url, index) => (
+              <div key={index} className="relative">
+                <img src={url} alt={`Gallery ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                <button
+                  type="button"
+                  onClick={() => removeGalleryImage(index)}
+                  className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:opacity-90"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
