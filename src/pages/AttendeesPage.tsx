@@ -43,10 +43,12 @@ export const AttendeesPage: React.FC = () => {
     }
   };
 
-  const filteredAttendees = attendees.filter((attendee) =>
-    attendee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    attendee.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAttendees = attendees.filter((attendee) => {
+    const name = (attendee.name || '').toLowerCase();
+    const email = (attendee.email || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return name.includes(query) || email.includes(query);
+  });
 
   const exportCSV = () => {
     const headers = ['Name', 'Email', 'Phone', 'RSVP Status', 'Tickets'];
