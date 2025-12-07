@@ -93,7 +93,7 @@ export const AnalyticsPage: React.FC = () => {
     .sort((a: any, b: any) => (b.views || 0) - (a.views || 0))
     .slice(0, 5)
     .map((e: any) => ({
-      name: e.name.length > 15 ? e.name.substring(0, 15) + '...' : e.name,
+      name: (e.name || '').length > 15 ? (e.name || '').substring(0, 15) + '...' : (e.name || 'Unnamed Event'),
       views: e.views || 0,
       rsvps: e.rsvps || 0,
       tickets: Math.floor((e.rsvps || 0) * 0.5),

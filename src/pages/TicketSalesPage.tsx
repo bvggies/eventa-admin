@@ -35,7 +35,7 @@ export const TicketSalesPage: React.FC = () => {
 
   // Mock ticket sales data
   const salesData = events.map((event) => ({
-    name: event.name.length > 15 ? event.name.substring(0, 15) + '...' : event.name,
+    name: (event.name || '').length > 15 ? (event.name || '').substring(0, 15) + '...' : (event.name || 'Unnamed Event'),
     tickets: Math.floor(Math.random() * 100) + 10,
     revenue: (Math.floor(Math.random() * 100) + 10) * (event.ticket_price || 0),
   }));

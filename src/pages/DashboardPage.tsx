@@ -156,7 +156,7 @@ export const DashboardPage: React.FC = () => {
       
       // Top event of the week
       if (analytics.trendingEvents && analytics.trendingEvents.length > 0) {
-        setTopEvent(analytics.trendingEvents[0]);
+        setTopEvent(analytics.trendingEvents?.[0] || null);
       }
 
       // Trending tags (mock - would come from buzz API)
