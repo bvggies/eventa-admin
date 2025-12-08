@@ -11,6 +11,27 @@ interface User {
   created_at: string;
 }
 
+interface Badge {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  icon: string;
+  category: string;
+}
+
+interface UserBadge {
+  id: string;
+  badge_id: string;
+  user_id: string;
+  earned_at: string;
+  name: string;
+  display_name: string;
+  description: string;
+  icon: string;
+  category: string;
+}
+
 export const AdminManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +49,11 @@ export const AdminManagementPage: React.FC = () => {
     is_organizer: false,
     is_admin: false,
   });
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [badgeUser, setBadgeUser] = useState<User | null>(null);
+  const [allBadges, setAllBadges] = useState<Badge[]>([]);
+  const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
+  const [loadingBadges, setLoadingBadges] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -92,6 +118,61 @@ export const AdminManagementPage: React.FC = () => {
       console.error('Error performing action:', error);
       alert('Error performing action. Please try again.');
     }
+  };
+
+  const handleManageBadges = async (user: User) => {
+    setBadgeUser(user);
+    setShowBadgeModal(true);
+    setLoadingBadges(true);
+    try {
+      const [badgesRes, userBadgesRes] = await Promise.all([
+        adminApi.getAllBadges(),
+        adminApi.getUserBadges(user.id),
+      ]);
+      setAllBadges(badgesRes.data.badges || []);
+      setUserBadges(userBadgesRes.data.badges || []);
+    } catch (error) {
+      console.error('Error loading badges:', error);
+      alert('Error loading badges. Please try again.');
+    } finally {
+      setLoadingBadges(false);
+    }
+  };
+
+  const handleAwardBadge = async (badgeId: string) => {
+    if (!badgeUser) return;
+
+    try {
+      await adminApi.awardBadge(badgeUser.id, badgeId);
+      // Reload user badges
+      const userBadgesRes = await adminApi.getUserBadges(badgeUser.id);
+      setUserBadges(userBadgesRes.data.badges || []);
+      alert('Badge awarded successfully!');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Error awarding badge. Please try again.');
+    }
+  };
+
+  const handleRemoveBadge = async (badgeId: string) => {
+    if (!badgeUser) return;
+
+    if (!confirm('Are you sure you want to remove this badge from the user?')) {
+      return;
+    }
+
+    try {
+      await adminApi.removeBadge(badgeUser.id, badgeId);
+      // Reload user badges
+      const userBadgesRes = await adminApi.getUserBadges(badgeUser.id);
+      setUserBadges(userBadgesRes.data.badges || []);
+      alert('Badge removed successfully!');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Error removing badge. Please try again.');
+    }
+  };
+
+  const hasBadge = (badgeId: string) => {
+    return userBadges.some((ub) => ub.badge_id === badgeId);
   };
 
   if (loading) {
@@ -211,7 +292,14 @@ export const AdminManagementPage: React.FC = () => {
                       {new Date(user.created_at).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => handleManageBadges(user)}
+                          className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-sm hover:bg-blue-500/30 transition-colors"
+                          title="Manage Badges"
+                        >
+                          🏆 Badges
+                        </button>
                         {!user.is_admin && (
                           <button
                             onClick={() => handleAction(user, 'promote')}
@@ -441,6 +529,126 @@ export const AdminManagementPage: React.FC = () => {
           <span className="text-accent-purple text-sm font-medium">View Page →</span>
         </Link>
       </div>
+
+      {/* Badge Management Modal */}
+      {showBadgeModal && badgeUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-primary-card rounded-xl border border-gray-800 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-800 sticky top-0 bg-primary-card z-10">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Manage Badges</h3>
+                  <p className="text-text-muted text-sm mt-1">
+                    {badgeUser.name} ({badgeUser.email})
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowBadgeModal(false);
+                    setBadgeUser(null);
+                    setUserBadges([]);
+                    setAllBadges([]);
+                  }}
+                  className="text-text-muted hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {loadingBadges ? (
+                <div className="text-center py-12 text-text-muted">Loading badges...</div>
+              ) : (
+                <>
+                  {/* User's Current Badges */}
+                  <div className="mb-8">
+                    <h4 className="text-lg font-semibold text-white mb-4">
+                      Current Badges ({userBadges.length})
+                    </h4>
+                    {userBadges.length === 0 ? (
+                      <p className="text-text-muted text-sm">No badges awarded yet.</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {userBadges.map((badge) => (
+                          <div
+                            key={badge.id}
+                            className="bg-primary-dark rounded-lg p-4 border border-gray-700 flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-3xl">{badge.icon}</span>
+                              <div>
+                                <h5 className="text-white font-medium">{badge.display_name}</h5>
+                                <p className="text-text-muted text-sm">{badge.description}</p>
+                                <p className="text-text-muted text-xs mt-1">
+                                  Earned: {new Date(badge.earned_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveBadge(badge.badge_id)}
+                              className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-sm hover:bg-red-500/30 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Available Badges to Award */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-white mb-4">
+                      Available Badges to Award
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {allBadges.map((badge) => {
+                        const userHasBadge = hasBadge(badge.id);
+                        return (
+                          <div
+                            key={badge.id}
+                            className={`bg-primary-dark rounded-lg p-4 border ${
+                              userHasBadge
+                                ? 'border-green-500/30 bg-green-500/5'
+                                : 'border-gray-700'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="text-3xl">{badge.icon}</span>
+                                <div>
+                                  <h5 className="text-white font-medium">{badge.display_name}</h5>
+                                  <p className="text-text-muted text-sm">{badge.description}</p>
+                                  <span className="inline-block mt-1 px-2 py-0.5 bg-gray-700/50 text-text-muted text-xs rounded">
+                                    {badge.category}
+                                  </span>
+                                </div>
+                              </div>
+                              {userHasBadge ? (
+                                <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-sm">
+                                  ✓ Awarded
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => handleAwardBadge(badge.id)}
+                                  className="px-3 py-1 bg-accent-purple/20 text-accent-purple rounded-lg text-sm hover:bg-accent-purple/30 transition-colors"
+                                >
+                                  Award
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -52,6 +52,12 @@ export const adminApi = {
   getNotifications: () => api.get('/admin/notifications'),
   getActivity: () => api.get('/admin/activity'),
   getFinancialData: (params?: any) => api.get('/admin/financial', { params }),
+  
+  // Badge management
+  getAllBadges: () => api.get('/admin/badges'),
+  getUserBadges: (userId: string) => api.get(`/admin/users/${userId}/badges`),
+  awardBadge: (data: { userId: string; badgeId: string }) => api.post('/admin/badges/award', data),
+  removeBadge: (data: { userId: string; badgeId: string }) => api.post('/admin/badges/remove', data),
 };
 
 export const safetyApi = {
