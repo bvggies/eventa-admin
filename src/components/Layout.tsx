@@ -8,6 +8,13 @@ interface LayoutProps {
   isOrganizer?: boolean;
 }
 
+interface NavItem {
+  path: string;
+  label: string;
+  icon: string;
+  badge?: boolean;
+}
+
 export const Layout: React.FC<LayoutProps> = ({ isAdmin = false, isOrganizer = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,8 +41,8 @@ export const Layout: React.FC<LayoutProps> = ({ isAdmin = false, isOrganizer = f
   };
 
   // Navigation items based on role
-  const getNavItems = () => {
-    const baseItems = [
+  const getNavItems = (): NavItem[] => {
+    const baseItems: NavItem[] = [
       { path: isAdmin ? '/' : '/organizer', label: 'Dashboard', icon: '📊' },
       { path: '/events', label: 'Events', icon: '🎉' },
       { path: '/ticket-sales', label: 'Sales', icon: '💰' },

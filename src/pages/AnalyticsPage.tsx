@@ -24,6 +24,10 @@ type TabType = 'overview' | 'events' | 'hashtags' | 'posts' | 'users';
 
 export const AnalyticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   
   // Reset to overview if organizer tries to access admin-only tabs
   useEffect(() => {
@@ -31,10 +35,6 @@ export const AnalyticsPage: React.FC = () => {
       setActiveTab('overview');
     }
   }, [isAdmin, activeTab]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
