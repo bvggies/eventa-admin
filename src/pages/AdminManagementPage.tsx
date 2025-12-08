@@ -143,7 +143,7 @@ export const AdminManagementPage: React.FC = () => {
     if (!badgeUser) return;
 
     try {
-      await adminApi.awardBadge(badgeUser.id, badgeId);
+      await adminApi.awardBadge({ userId: badgeUser.id, badgeId });
       // Reload user badges
       const userBadgesRes = await adminApi.getUserBadges(badgeUser.id);
       setUserBadges(userBadgesRes.data.badges || []);
@@ -156,12 +156,12 @@ export const AdminManagementPage: React.FC = () => {
   const handleRemoveBadge = async (badgeId: string) => {
     if (!badgeUser) return;
 
-    if (!confirm('Are you sure you want to remove this badge from the user?')) {
+    if (!window.confirm('Are you sure you want to remove this badge from the user?')) {
       return;
     }
 
     try {
-      await adminApi.removeBadge(badgeUser.id, badgeId);
+      await adminApi.removeBadge({ userId: badgeUser.id, badgeId });
       // Reload user badges
       const userBadgesRes = await adminApi.getUserBadges(badgeUser.id);
       setUserBadges(userBadgesRes.data.badges || []);
